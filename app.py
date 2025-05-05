@@ -48,25 +48,14 @@ def handle_message(event):
         data = load_data()
         current_month = datetime.now().strftime('%Y-%m')
 
-        if group_id not in data:
-            data[group_id] = {}
-
-        if current_month not in data[group_id]:
-            data[group_id][current_month] = {}
-
-        if user_id not in data[group_id][current_month]:
-            data[group_id][current_month][user_id] = 0
-
+        data.setdefault(group_id, {}).setdefault(current_month, {}).setdefault(user_id, 0)
         data[group_id][current_month][user_id] += 1
 
         save_data(data)
 
     if text.startswith("大便統計"):
         parts = text.split()
-        if len(parts) == 2:
-            month = parts[1]
-        else:
-            month = datetime.now().strftime('%Y-%m')
+        month = parts[1] if len(parts) == 2 else datetime.now().strftime('%Y-%m')
 
         data = load_data()
         reply_text = f"{month} 大便💩統計：\n"
@@ -74,14 +63,18 @@ def handle_message(event):
         if group_id and group_id in data and month in data[group_id]:
             user_data = data[group_id][month]
             sorted_users = sorted(user_data.items(), key=lambda x: x[1], reverse=True)
+
+            top_count = sorted_users[0][1] if sorted_users else 0
             
             for uid, count in sorted_users:
                 try:
                     profile = line_bot_api.get_group_member_profile(group_id, uid)
                     name = profile.display_name
                 except Exception:
-                    name = f"使用者 {uid[:5]}"  # fallback 用部分 UID
-                reply_text += f"{name}：{count} 次\n"
+                    name = f"使用者 {uid[:5]}"
+                
+                trophy = '🏆 ' if count == top_count else ''
+                reply_text += f"{trophy}{name}：{count} 次\n"
         else:
             reply_text += "這個月大家都還沒大便💩哦！"
 
