@@ -8,8 +8,8 @@ import os
 
 app = Flask(__name__)
 
-LINE_CHANNEL_ACCESS_TOKEN = 'HCsCYjOsdQPAxl4gOCFGYNfNR4/HkUHS25Urg0pio7p3bav633gGTyfl/OgYGIpQ+SjcyIKsdS28Ai3IhOXjyYJW4Fppls6IL1E7U0SNby2xBy3gyMdZFOgnUW3QNGsoXZw0NymiIwSvIO7oEkYDAQdB04t89/1O/w1cDnyilFU='
-LINE_CHANNEL_SECRET = 'cbf013fe99d71d2c07a4ef4af54c1564'
+LINE_CHANNEL_ACCESS_TOKEN = '你的LINE_ACCESS_TOKEN'
+LINE_CHANNEL_SECRET = '你的LINE_SECRET'
 
 line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
@@ -17,11 +17,8 @@ handler = WebhookHandler(LINE_CHANNEL_SECRET)
 DATA_DIR = 'data'
 DATA_FILE = os.path.join(DATA_DIR, 'poop_data.json')
 
-# 確保資料夾存在
 if not os.path.exists(DATA_DIR):
     os.makedirs(DATA_DIR)
-
-# 確保資料檔存在
 if not os.path.exists(DATA_FILE):
     with open(DATA_FILE, 'w') as f:
         json.dump({}, f)
@@ -56,15 +53,12 @@ def handle_message(event):
 
         if group_id not in data:
             data[group_id] = {}
-
         if current_month not in data[group_id]:
             data[group_id][current_month] = {}
-
         if user_id not in data[group_id][current_month]:
             data[group_id][current_month][user_id] = 0
 
         data[group_id][current_month][user_id] += 1
-
         save_data(data)
 
     if text.startswith("大便統計"):
@@ -80,6 +74,7 @@ def handle_message(event):
         if group_id and group_id in data and month in data[group_id]:
             user_data = data[group_id][month]
             sorted_users = sorted(user_data.items(), key=lambda x: x[1], reverse=True)
+            medals = ['🥇', '🥈', '🥉']
 
             for idx, (uid, count) in enumerate(sorted_users):
                 try:
@@ -88,8 +83,8 @@ def handle_message(event):
                 except Exception:
                     name = f"使用者 {uid[:5]}"
 
-                trophy = '🏆' if idx == 0 else ''
-                reply_text += f"{trophy}{name}：{count} 次\n"
+                medal = medals[idx] if idx < 3 else ''
+                reply_text += f"{medal}{name}：{count} 次\n"
         else:
             reply_text += "這個月大家都還沒大便💩哦！"
 
