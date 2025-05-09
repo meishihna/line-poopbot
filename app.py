@@ -77,15 +77,17 @@ def handle_message(event):
             medals = ['🥇', '🥈', '🥉']
 
             last_count = None
-            current_rank = -1
-            medal_index = -1
+            current_rank = 0
+            medal_index = 0
 
             for idx, (uid, count) in enumerate(sorted_users):
                 if count != last_count:
                     current_rank += 1
-                    if current_rank < 3:
-                        medal_index = current_rank
                     last_count = count
+                    if current_rank > 3:
+                        medal_index = None
+                    else:
+                        medal_index = current_rank - 1  # medals index 0,1,2
 
                 try:
                     profile = line_bot_api.get_group_member_profile(group_id, uid)
@@ -93,7 +95,7 @@ def handle_message(event):
                 except Exception:
                     name = f"使用者 {uid[:5]}"
 
-                medal = medals[medal_index] if medal_index < 3 else ''
+                medal = medals[medal_index] if medal_index is not None and medal_index < 3 else ''
                 reply_text += f"{medal}{name}：{count} 次\n"
         else:
             reply_text += "這個月大家都還沒大便💩哦！"
@@ -106,3 +108,5 @@ def handle_message(event):
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
+
+
